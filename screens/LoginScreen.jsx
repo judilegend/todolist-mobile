@@ -22,9 +22,7 @@ const LoginScreen = ({ navigation }) => {
 
     try {
       await login(username, password);
-      Alert.alert("Success", "Logged in successfully");
-      // Navigate to main app screen after successful login
-      // navigation.navigate('MainApp');
+      navigation.navigate('TodoList');
     } catch (error) {
       Alert.alert("Error", error.toString());
     }

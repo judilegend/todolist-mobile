@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
+  FlatList,
   TextInput,
   TouchableOpacity,
-  FlatList,
   StyleSheet,
-  Alert,
 } from "react-native";
-import { AuthContext } from "../context/AuthContext";
 import {
   getTodos,
   addTodo,
@@ -16,141 +14,125 @@ import {
   deleteTodo,
 } from "../services/database";
 
-const TodoListScreen = ({ navigation }) => {
+const TodoListScreen = () => {
   const [todos, setTodos] = useState([]);
-  const [inputText, setInputText] = useState("");
-  const { user, logout } = useContext(AuthContext);
+  const [newTodo, setNewTodo] = useState("");
 
   useEffect(() => {
     loadTodos();
   }, []);
 
   const loadTodos = async () => {
-    try {
-      const loadedTodos = await getTodos(user.id);
-      setTodos(
-        loadedTodos.map((todo) => ({
-          ...todo,
-          completed: todo.completed === 1,
-        }))
-      );
-    } catch (error) {
-      console.error("Erreur lors du chargement des tâches:", error);
-    }
+    const loadedTodos = await getTodos();
+    setTodos(loadedTodos);
   };
 
   const handleAddTodo = async () => {
-    if (inputText.trim() !== "") {
-      try {
-        const newTodoId = await addTodo(user.id, inputText);
-        setTodos([
-          ...todos,
-          { id: newTodoId, text: inputText, completed: false },
-        ]);
-        setInputText("");
-      } catch (error) {
-        console.error("Erreur lors de l'ajout de la tâche:", error);
-        Alert.alert("Erreur", "Impossible d'ajouter la tâche");
-      }
-    } else {
-      Alert.alert("Erreur", "Veuillez entrer une tâche valide.");
+    if (newTodo.trim() !== "") {
+      await addTodo(newTodo);
+      setNewTodo("");
+      loadTodos();
     }
   };
 
   const handleToggleTodo = async (id, completed) => {
-    try {
-      await updateTodo(id, !completed);
-      setTodos(
-        todos.map((todo) =>
-          todo.id === id ? { ...todo, completed: !todo.completed } : todo
-        )
-      );
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour de la tâche:", error);
-      Alert.alert("Erreur", "Impossible de mettre à jour la tâche");
-    }
+    await updateTodo(id, !completed);
+    loadTodos();
   };
 
-  const handleDeleteTodo = (id) => {
-    Alert.alert(
-      "Confirmation",
-      "Êtes-vous sûr de vouloir supprimer cette tâche ?",
-      [
-        { text: "Annuler", style: "cancel" },
-        {
-          text: "Supprimer",
-          onPress: async () => {
-            try {
-              await deleteTodo(id);
-              setTodos(todos.filter((todo) => todo.id !== id));
-            } catch (error) {
-              console.error(
-                "Erreur lors de la suppression de la tâche:",
-                error
-              );
-              Alert.alert("Erreur", "Impossible de supprimer la tâche");
-            }
-          },
-        },
-      ]
-    );
+  const handleDeleteTodo = async (id) => {
+    await deleteTodo(id);
+    loadTodos();
   };
-
-  const handleLogout = async () => {
-    await logout();
-    navigation.navigate("Login");
-  };
-
-  const renderTodoItem = ({ item }) => (
-    <View style={styles.todoItem}>
-      <TouchableOpacity
-        onPress={() => handleToggleTodo(item.id, item.completed)}
-        style={styles.todoTextContainer}
-      >
-        <Text
-          style={[styles.todoText, item.completed && styles.completedTodoText]}
-        >
-          {item.text}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => handleDeleteTodo(item.id)}
-        style={styles.deleteButton}
-      >
-        <Text style={styles.deleteButtonText}>Supprimer</Text>
-      </TouchableOpacity>
-    </View>
-  );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Ma Liste de Tâches</Text>
+      <Text style={styles.title}>Todo List</Text>
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder="Ajouter une nouvelle tâche"
+          value={newTodo}
+          onChangeText={setNewTodo}
+          placeholder="Add a new todo"
         />
-        <TouchableOpacity onPress={handleAddTodo} style={styles.addButton}>
-          <Text style={styles.addButtonText}>Ajouter</Text>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddTodo}>
+          <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
       </View>
       <FlatList
         data={todos}
-        renderItem={renderTodoItem}
         keyExtractor={(item) => item.id.toString()}
-        style={styles.list}
+        renderItem={({ item }) => (
+          <View style={styles.todoItem}>
+            <TouchableOpacity
+              onPress={() => handleToggleTodo(item.id, item.completed)}
+            >
+              <Text
+                style={item.completed ? styles.completedTodo : styles.todoText}
+              >
+                {item.text}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleDeleteTodo(item.id)}>
+              <Text style={styles.deleteButton}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       />
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <Text style={styles.logoutButtonText}>Déconnexion</Text>
-      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  // ... (styles restent les mêmes)
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+  },
+  input: {
+    flex: 1,
+    height: 40,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginRight: 10,
+    paddingHorizontal: 10,
+  },
+  addButton: {
+    backgroundColor: "#007AFF",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 5,
+  },
+  addButtonText: {
+    color: "white",
+    fontSize: 16,
+  },
+  todoItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  todoText: {
+    fontSize: 16,
+  },
+  completedTodo: {
+    fontSize: 16,
+    textDecorationLine: "line-through",
+    color: "gray",
+  },
+  deleteButton: {
+    color: "red",
+  },
 });
 
 export default TodoListScreen;
