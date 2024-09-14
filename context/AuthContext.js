@@ -1,5 +1,5 @@
-import React, { createContext, useState, useEffect } from "react";
-import { initDatabase, loginUser } from "../services/database";
+import React, { createContext, useState, useEffect } from 'react';
+import { initDatabase, loginUser } from '../services/database';
 
 export const AuthContext = createContext();
 
@@ -12,9 +12,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const user = await loginUser(username, password);
-      setUser(user);
-      return user;
+      const userData = await loginUser(username, password);
+      setUser(userData);
+      return userData;
     } catch (error) {
       throw error;
     }

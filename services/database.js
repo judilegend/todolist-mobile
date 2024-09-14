@@ -1,34 +1,39 @@
-import * as SQLite from "expo-sqlite";
+import * as SQLite from 'expo-sqlite';
 
-const db = SQLite.openDatabase("TodoApp.db");
+const db = SQLite.openDatabase('ProjectManagement.db');
 
 export const initDatabase = () => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)',
+        'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, role TEXT)',
         []
       );
       tx.executeSql(
-        'CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, text TEXT, completed INTEGER)',
-        [],
+        'CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, status TEXT, assigned_to INTEGER, FOREIGN KEY(assigned_to) REFERENCES users(id))',
+        []
+      );
+      tx.executeSql(
+        'INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)',
+        ['admin', 'admin123', 'admin'],
         () => resolve(),
         (_, error) => reject(error)
       );
     });
   });
 };
+
 export const loginUser = (username, password) => {
   return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
+    db.transaction(tx => {
       tx.executeSql(
-        "SELECT * FROM users WHERE username = ? AND password = ?",
+        'SELECT * FROM users WHERE username = ? AND password = ?',
         [username, password],
         (_, { rows }) => {
           if (rows.length > 0) {
             resolve(rows._array[0]);
           } else {
-            reject("Invalid credentials");
+            reject('Invalid credentials');
           }
         },
         (_, error) => reject(error)
@@ -37,11 +42,11 @@ export const loginUser = (username, password) => {
   });
 };
 
-export const getTodos = () => {
+export const getAllUsers = () => {
   return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
+    db.transaction(tx => {
       tx.executeSql(
-        "SELECT * FROM todos",
+        'SELECT id, username, role FROM users',
         [],
         (_, { rows }) => resolve(rows._array),
         (_, error) => reject(error)
@@ -50,12 +55,12 @@ export const getTodos = () => {
   });
 };
 
-export const addTodo = (text) => {
+export const addTask = (title, description, assignedTo) => {
   return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
+    db.transaction(tx => {
       tx.executeSql(
-        "INSERT INTO todos (text, completed) VALUES (?, ?)",
-        [text, 0],
+        'INSERT INTO tasks (title, description, status, assigned_to) VALUES (?, ?, ?, ?)',
+        [title, description, 'pending', assignedTo],
         (_, { insertId }) => resolve(insertId),
         (_, error) => reject(error)
       );
@@ -63,12 +68,30 @@ export const addTodo = (text) => {
   });
 };
 
-export const updateTodo = (id, completed) => {
+export const getTasks = (userId = null, isAdmin = false) => {
   return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
+    db.transaction(tx => {
+      const query = isAdmin
+        ? 'SELECT tasks.*, users.username as assigned_to_name FROM tasks LEFT JOIN users ON tasks.assigned_to = users.id'
+        : 'SELECT * FROM tasks WHERE assigned_to = ?';
+      const params = isAdmin ? [] : [userId];
+      
       tx.executeSql(
-        "UPDATE todos SET completed = ? WHERE id = ?",
-        [completed ? 1 : 0, id],
+        query,
+        params,
+        (_, { rows }) => resolve(rows._array),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
+export const updateTaskStatus = (taskId, newStatus) => {
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        'UPDATE tasks SET status = ? WHERE id = ?',
+        [newStatus, taskId],
         () => resolve(),
         (_, error) => reject(error)
       );
@@ -76,12 +99,12 @@ export const updateTodo = (id, completed) => {
   });
 };
 
-export const deleteTodo = (id) => {
+export const deleteTask = (taskId) => {
   return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
+    db.transaction(tx => {
       tx.executeSql(
-        "DELETE FROM todos WHERE id = ?",
-        [id],
+        'DELETE FROM tasks WHERE id = ?',
+        [taskId],
         () => resolve(),
         (_, error) => reject(error)
       );

@@ -1,9 +1,10 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import LoginScreen from "./screens/LoginScreen";
-import TodoListScreen from "./screens/TodoListScreen";
 import { AuthProvider } from "./context/AuthContext";
+import LoginScreen from "./screens/LoginScreen";
+import TaskListScreen from "./screens/TaskListScreen";
+import AddTaskScreen from "./screens/AddTaskScreen";
 
 const Stack = createStackNavigator();
 
@@ -11,9 +12,22 @@ export default function App() {
   return (
     <AuthProvider>
       <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="TodoList" component={TodoListScreen} />
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="TaskList"
+            component={TaskListScreen}
+            options={{ title: "Tasks" }}
+          />
+          <Stack.Screen
+            name="AddTask"
+            component={AddTaskScreen}
+            options={{ title: "Add New Task" }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>
