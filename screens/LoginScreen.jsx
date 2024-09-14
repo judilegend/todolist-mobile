@@ -16,39 +16,38 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     if (username.trim() === "" || password.trim() === "") {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs");
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     try {
       await login(username, password);
-      navigation.navigate("TodoList");
+      Alert.alert("Success", "Logged in successfully");
+      // Navigate to main app screen after successful login
+      // navigation.navigate('MainApp');
     } catch (error) {
-      Alert.alert("Erreur", error.toString());
+      Alert.alert("Error", error.toString());
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Connexion</Text>
+      <Text style={styles.title}>Login</Text>
       <TextInput
         style={styles.input}
-        placeholder="Nom d'utilisateur"
+        placeholder="Username"
         value={username}
         onChangeText={setUsername}
       />
       <TextInput
         style={styles.input}
-        placeholder="Mot de passe"
+        placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Se connecter</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text style={styles.linkText}>Pas de compte ? S'inscrire</Text>
+        <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
     </View>
   );
@@ -84,10 +83,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontSize: 16,
-  },
-  linkText: {
-    marginTop: 15,
-    color: "#007AFF",
   },
 });
 
