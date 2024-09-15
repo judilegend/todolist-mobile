@@ -5,12 +5,14 @@ import { AuthProvider } from "./context/AuthContext";
 import LoginScreen from "./screens/LoginScreen";
 import TaskListScreen from "./screens/TaskListScreen";
 import AddTaskScreen from "./screens/AddTaskScreen";
+import { TaskProvider } from "./context/TaskContext";
 
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <AuthProvider>
+      <TaskProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Login">
           <Stack.Screen
@@ -30,6 +32,7 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
+      </TaskProvider>
     </AuthProvider>
   );
 }

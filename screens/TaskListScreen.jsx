@@ -8,29 +8,26 @@ import {
   Alert,
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
-import { getTasks, updateTaskStatus, deleteTask } from "../services/database";
-
+// import { getTasks, updateTaskStatus, deleteTask } from "../services/database";
+// import AddTaskScreen from "./AddTaskScreen";
+import { TaskContext } from "../context/TaskContext";
 const TaskListScreen = ({ navigation }) => {
+  const { tasks, loadTasks, updateTaskStatus, deleteTask } =
+    useContext(TaskContext); // Utilise le contexte
+  console.log(tasks);
+
   const { user } = useContext(AuthContext);
-  const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    loadTasks();
-  }, []);
-
-  const loadTasks = async () => {
-    try {
-      const loadedTasks = await getTasks(user.id, user.role === "admin");
-      setTasks(loadedTasks);
-    } catch (error) {
-      Alert.alert("Error", "Failed to load tasks");
+    if (user) {
+      loadTasks(user.id, user.role === "admin");
     }
-  };
+  }, [user]);
 
   const handleUpdateStatus = async (taskId, newStatus) => {
     try {
       await updateTaskStatus(taskId, newStatus);
-      loadTasks();
+      // Pas besoin de recharger les tâches manuellement car l'état est déjà mis à jour dans le contexte
     } catch (error) {
       Alert.alert("Error", "Failed to update task status");
     }
@@ -44,7 +41,7 @@ const TaskListScreen = ({ navigation }) => {
 
     try {
       await deleteTask(taskId);
-      loadTasks();
+      // Pas besoin de recharger les tâches manuellement ici non plus
     } catch (error) {
       Alert.alert("Error", "Failed to delete task");
     }
@@ -59,7 +56,7 @@ const TaskListScreen = ({ navigation }) => {
         <Text>Assigned to: {item.assigned_to_name}</Text>
       )}
       <View style={styles.actionButtons}>
-        {user.role === "admin" || item.assigned_to === user.id ? (
+        {(user.role === "admin" || item.assigned_to === user.id) && (
           <TouchableOpacity
             style={styles.updateButton}
             onPress={() =>
@@ -73,7 +70,7 @@ const TaskListScreen = ({ navigation }) => {
               {item.status === "pending" ? "Mark Completed" : "Mark Pending"}
             </Text>
           </TouchableOpacity>
-        ) : null}
+        )}
         {user.role === "admin" && (
           <TouchableOpacity
             style={styles.deleteButton}
@@ -100,7 +97,9 @@ const TaskListScreen = ({ navigation }) => {
       <FlatList
         data={tasks}
         renderItem={renderTask}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) =>
+          item.id ? item.id.toString() : Math.random().toString()
+        }
       />
     </View>
   );
