@@ -5,17 +5,23 @@ const db = SQLite.openDatabase("ProjectManagement.db");
 export const initDatabase = () => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
+      // Création de la table utilisateurs
       tx.executeSql(
         "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, role TEXT)",
         []
       );
+      // Création de la table tâches
       tx.executeSql(
         "CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, status TEXT, assigned_to INTEGER, FOREIGN KEY(assigned_to) REFERENCES users(id))",
         []
       );
+      // Insertion des utilisateurs admin et user si non existants
       tx.executeSql(
         "INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)",
-        ["admin", "admin123", "admin"],
+        ["admin", "admin123", "admin"]
+      );
+      tx.executeSql(
+        "INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)",
         ["user", "user123", "user"],
         () => resolve(),
         (_, error) => reject(error)
@@ -62,10 +68,12 @@ export const addTask = (title, description, assignedTo) => {
       tx.executeSql(
         "INSERT INTO tasks (title, description, status, assigned_to) VALUES (?, ?, ?, ?)",
         [title, description, "pending", assignedTo],
-        (_, { insertId }) => resolve(insertId),
+        (_, { insertId }) => {
+          // Retourner l'ID de la tâche ajoutée
+          resolve(insertId);
+        },
         (_, error) => reject(error)
       );
-      getTasks()
     });
   });
 };
@@ -82,6 +90,24 @@ export const getTasks = (userId = null, isAdmin = false) => {
         query,
         params,
         (_, { rows }) => resolve(rows._array),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+export const getUserById = (userId) => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT username FROM users WHERE id = ?",
+        [userId],
+        (_, { rows }) => {
+          if (rows.length > 0) {
+            resolve(rows._array[0].username); // Retourne le nom d'utilisateur
+          } else {
+            reject("User not found");
+          }
+        },
         (_, error) => reject(error)
       );
     });

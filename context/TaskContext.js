@@ -29,10 +29,17 @@ export const TaskProvider = ({ children }) => {
 
   const addTask = async (title, description, assignedTo) => {
     try {
-      const newTask = await addTaskService(title, description, assignedTo);
+      const newTaskId = await addTaskService(title, description, assignedTo);
+      const newTask = {
+        id: newTaskId,
+        title,
+        description,
+        assignedTo,
+        status: "pending",
+        assigned_to_name: "New user",
+      };
 
       setTasks((prevTasks) => [...prevTasks, newTask]); // Ajouter immédiatement la nouvelle tâche
-      console.log("yjffjfjfjhhjhj", tasks);
     } catch (error) {
       console.error("Failed to add task", error);
     }

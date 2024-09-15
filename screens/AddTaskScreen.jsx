@@ -13,7 +13,7 @@ import { getAllUsers } from "../services/database";
 import { TaskContext } from "../context/TaskContext";
 const AddTaskScreen = ({ navigation }) => {
   const { user } = useContext(AuthContext);
-  const { addTask, load } = useContext(TaskContext);
+  const { addTask } = useContext(TaskContext);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
@@ -41,7 +41,7 @@ const AddTaskScreen = ({ navigation }) => {
     try {
       await addTask(title, description, assignedTo);
       Alert.alert("Success", "Task added successfully");
-      
+      navigation.goBack();
     } catch (error) {
       Alert.alert("Error", "Failed to add task");
     }

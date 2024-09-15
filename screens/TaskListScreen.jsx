@@ -14,7 +14,7 @@ import { TaskContext } from "../context/TaskContext";
 const TaskListScreen = ({ navigation }) => {
   const { tasks, loadTasks, updateTaskStatus, deleteTask } =
     useContext(TaskContext); // Utilise le contexte
-  console.log(tasks);
+  // console.log(tasks);
 
   const { user } = useContext(AuthContext);
 
@@ -94,13 +94,17 @@ const TaskListScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>Add New Task</Text>
         </TouchableOpacity>
       )}
-      <FlatList
-        data={tasks}
-        renderItem={renderTask}
-        keyExtractor={(item) =>
-          item.id ? item.id.toString() : Math.random().toString()
-        }
-      />
+      {tasks && tasks.length > 0 ? (
+        <FlatList
+          data={tasks}
+          renderItem={renderTask}
+          keyExtractor={(item) => { item.id.toString()  // Mieux vaut éviter Math.random()
+            // console.log("lfjglfjlgf", item.id);
+          }}
+        />
+      ) : (
+        <Text>No tasks available.</Text> // Message quand il n'y a pas de tâches
+      )}
     </View>
   );
 };
