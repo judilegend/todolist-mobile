@@ -1,26 +1,34 @@
-import firestore from "@react-native-firebase/firestore";
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
 
-export const getNotifications = async () => {
-  try {
-    const snapshot = await firestore()
-      .collection("notifications")
-      .orderBy("date", "desc")
-      .get();
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-  } catch (error) {
-    throw error;
+export const setupNotifications = async () => {
+  if (Platform.OS === "android") {
+    await Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#FF231F7C",
+    });
+  }
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  if (existingStatus !== "granted") {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+  if (finalStatus !== "granted") {
+    alert("Failed to get push token for push notification!");
+    return;
   }
 };
 
-export const subscribeToNotifications = (userId, callback) => {
-  return firestore()
-    .collection("notifications")
-    .where("userId", "==", userId)
-    .onSnapshot((snapshot) => {
-      const notifications = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      callback(notifications);
-    });
+export const scheduleLocalNotification = async (title, body, trigger) => {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: title,
+      body: body,
+    },
+    trigger,
+  });
 };

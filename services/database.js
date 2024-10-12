@@ -294,3 +294,82 @@ export const addConsumptionData = (userId, type, value, date) => {
     });
   });
 };
+export const getPlannedOutages = () => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM planned_outages",
+        [],
+        (_, { rows }) => resolve(rows._array),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+import React, { useContext } from "react";
+import { View, Button, StyleSheet, FlatList, Text } from "react-native";
+import { AuthContext } from "../context/AuthContext";
+import { NotificationContext } from "../context/NotificationContext";
+
+const HomeScreen = ({ navigation }) => {
+  const { user, logout } = useContext(AuthContext);
+  const { notifications } = useContext(NotificationContext);
+
+  const renderNotification = ({ item }) => (
+    <View style={styles.notificationItem}>
+      <Text style={styles.notificationTitle}>{item.type} Outage Planned</Text>
+      <Text>{item.date}</Text>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={notifications}
+        renderItem={renderNotification}
+        keyExtractor={(item) => item.id.toString()}
+        ListHeaderComponent={
+          <>
+            <Button
+              title="Report Issue"
+              onPress={() => navigation.navigate("ReportIssue")}
+            />
+            <Button
+              title="View Issue Map"
+              onPress={() => navigation.navigate("IssueMap")}
+            />
+            <Button
+              title="View Consumption"
+              onPress={() => navigation.navigate("Consumption")}
+            />
+            {user && user.role === "jirama" && (
+              <Button
+                title="JIRAMA Intervention Dashboard"
+                onPress={() => navigation.navigate("JiramaIntervention")}
+              />
+            )}
+            <Button title="Logout" onPress={logout} />
+          </>
+        }
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  notificationItem: {
+    backgroundColor: "#f0f0f0",
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 5,
+  },
+  notificationTitle: {
+    fontWeight: "bold",
+  },
+});
+
+export default HomeScreen;
