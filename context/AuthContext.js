@@ -1,31 +1,51 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { initDatabase, loginUser } from '../services/database';
-
+import React, { createContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { loginUser, registerUser } from "../services/database";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    initDatabase();
+    checkStoredUser();
   }, []);
+
+  const checkStoredUser = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error("Error checking stored user:", error);
+    }
+  };
 
   const login = async (username, password) => {
     try {
-      const userData = await loginUser(username, password);
-      setUser(userData);
-      return userData;
+      const loggedInUser = await loginUser(username, password);
+      setUser(loggedInUser);
+      await AsyncStorage.setItem("user", JSON.stringify(loggedInUser));
     } catch (error) {
       throw error;
     }
   };
 
-  const logout = () => {
+  const register = async (username, password) => {
+    try {
+      await registerUser(username, password);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const logout = async () => {
     setUser(null);
+    await AsyncStorage.removeItem("user");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

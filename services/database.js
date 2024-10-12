@@ -1,21 +1,22 @@
 import * as SQLite from "expo-sqlite";
 
-const db = SQLite.openDatabase("ProjectManagement.db");
+const db = SQLite.openDatabase("EnerWattMadagascar.db");
 
 export const initDatabase = () => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      // Création de la table utilisateurs
       tx.executeSql(
         "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, role TEXT)",
         []
       );
-      // Création de la table tâches
       tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, status TEXT, assigned_to INTEGER, FOREIGN KEY(assigned_to) REFERENCES users(id))",
+        "CREATE TABLE IF NOT EXISTS issues (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, type TEXT, status TEXT, latitude REAL, longitude REAL, user_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id))",
         []
       );
-      // Insertion des utilisateurs admin et user si non existants
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS consumption (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, type TEXT, value REAL, date TEXT, FOREIGN KEY(user_id) REFERENCES users(id))",
+        []
+      );
       tx.executeSql(
         "INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)",
         ["admin", "admin123", "admin"]
@@ -40,7 +41,7 @@ export const loginUser = (username, password) => {
           if (rows.length > 0) {
             resolve(rows._array[0]);
           } else {
-            reject("Invalid credentials");
+            reject(new Error("Invalid credentials"));
           }
         },
         (_, error) => reject(error)
@@ -49,91 +50,33 @@ export const loginUser = (username, password) => {
   });
 };
 
-export const getAllUsers = () => {
+export const registerUser = (username, password, role = "user") => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        "SELECT id, username, role FROM users",
+        "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+        [username, password, role],
+        (_, { insertId }) => {
+          resolve({ id: insertId, username, role });
+        },
+        (_, error) => {
+          if (error.message.includes("UNIQUE constraint failed")) {
+            reject(new Error("Username already exists"));
+          } else {
+            reject(error);
+          }
+        }
+      );
+    });
+  });
+};
+export const getIssues = () => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM issues",
         [],
         (_, { rows }) => resolve(rows._array),
-        (_, error) => reject(error)
-      );
-    });
-  });
-};
-
-export const addTask = (title, description, assignedTo) => {
-  return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "INSERT INTO tasks (title, description, status, assigned_to) VALUES (?, ?, ?, ?)",
-        [title, description, "pending", assignedTo],
-        (_, { insertId }) => {
-          // Retourner l'ID de la tâche ajoutée
-          resolve(insertId);
-        },
-        (_, error) => reject(error)
-      );
-    });
-  });
-};
-
-export const getTasks = (userId = null, isAdmin = false) => {
-  return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      const query = isAdmin
-        ? "SELECT tasks.*, users.username as assigned_to_name FROM tasks LEFT JOIN users ON tasks.assigned_to = users.id"
-        : "SELECT * FROM tasks WHERE assigned_to = ?";
-      const params = isAdmin ? [] : [userId];
-
-      tx.executeSql(
-        query,
-        params,
-        (_, { rows }) => resolve(rows._array),
-        (_, error) => reject(error)
-      );
-    });
-  });
-};
-export const getUserById = (userId) => {
-  return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "SELECT username FROM users WHERE id = ?",
-        [userId],
-        (_, { rows }) => {
-          if (rows.length > 0) {
-            resolve(rows._array[0].username); // Retourne le nom d'utilisateur
-          } else {
-            reject("User not found");
-          }
-        },
-        (_, error) => reject(error)
-      );
-    });
-  });
-};
-
-export const updateTaskStatus = (taskId, newStatus) => {
-  return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "UPDATE tasks SET status = ? WHERE id = ?",
-        [newStatus, taskId],
-        () => resolve(),
-        (_, error) => reject(error)
-      );
-    });
-  });
-};
-
-export const deleteTask = (taskId) => {
-  return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "DELETE FROM tasks WHERE id = ?",
-        [taskId],
-        () => resolve(),
         (_, error) => reject(error)
       );
     });

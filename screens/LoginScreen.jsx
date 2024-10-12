@@ -1,12 +1,5 @@
 import React, { useState, useContext } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
 const LoginScreen = ({ navigation }) => {
@@ -15,38 +8,34 @@ const LoginScreen = ({ navigation }) => {
   const { login } = useContext(AuthContext);
 
   const handleLogin = async () => {
-    if (username.trim() === "" || password.trim() === "") {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
-
     try {
       await login(username, password);
-      navigation.navigate("TaskList");
+      navigation.replace("Home");
     } catch (error) {
-      Alert.alert("Error", error.toString());
+      Alert.alert("Login Failed", error.message);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
       <TextInput
         style={styles.input}
-        placeholder="default Username: admin"
+        placeholder="Username"
         value={username}
         onChangeText={setUsername}
       />
       <TextInput
         style={styles.input}
-        placeholder="Default Password : admin123"
+        placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+      <Button title="Login" onPress={handleLogin} />
+      <Button
+        title="Register"
+        onPress={() => navigation.navigate("Register")}
+      />
     </View>
   );
 };
@@ -55,32 +44,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
     padding: 20,
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: "bold",
-  },
   input: {
-    width: "100%",
-    height: 40,
-    borderColor: "gray",
     borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  },
-  button: {
-    backgroundColor: "#007AFF",
+    borderColor: "#ddd",
     padding: 10,
+    marginBottom: 20,
     borderRadius: 5,
-    width: "100%",
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
   },
 });
 
