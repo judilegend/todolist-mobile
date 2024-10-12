@@ -10,6 +10,7 @@ import IssueMapScreen from "./screens/IssueMapScreen";
 import ConsumptionScreen from "./screens/ConsumptionScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import { initDatabase } from "./services/database";
+import JiramaInterventionScreen from "./screens/JiramaInterventionScreen";
 
 const Stack = createStackNavigator();
 
@@ -53,6 +54,11 @@ export default function App() {
               name="Consumption"
               component={ConsumptionScreen}
               options={{ title: "My Consumption" }}
+            />
+            <Stack.Screen
+              name="JiramaIntervention"
+              component={JiramaInterventionScreen}
+              options={{ headerShown: false }}
             />
           </Stack.Navigator>
         </NavigationContainer>

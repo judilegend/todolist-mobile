@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { loginUser, registerUser } from "../services/database";
+
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -31,21 +32,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (username, password) => {
-    try {
-      await registerUser(username, password);
-    } catch (error) {
-      throw error;
-    }
-  };
-
   const logout = async () => {
     setUser(null);
     await AsyncStorage.removeItem("user");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
