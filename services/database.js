@@ -82,3 +82,54 @@ export const getIssues = () => {
     });
   });
 };
+export const addIssue = (
+  title,
+  description,
+  type,
+  latitude,
+  longitude,
+  userId
+) => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "INSERT INTO issues (title, description, type, status, latitude, longitude, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [title, description, type, "pending", latitude, longitude, userId],
+        (_, { insertId }) => resolve(insertId),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
+export const addConsumptionData = (userId, type, value, date) => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "INSERT INTO consumption (user_id, type, value, date) VALUES (?, ?, ?, ?)",
+        [userId, type, value, date],
+        (_, { insertId }) => resolve(insertId),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+export const getConsumptionData = (userId) => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM consumption WHERE user_id = ?",
+        [userId],
+        (_, { rows }) => {
+          const data = rows._array;
+          const water = data.filter((item) => item.type === "water");
+          const electricity = data.filter(
+            (item) => item.type === "electricity"
+          );
+          resolve({ water, electricity });
+        },
+        (_, error) => reject(error)
+      );
+    });
+  });
+};

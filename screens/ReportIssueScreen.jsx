@@ -1,17 +1,27 @@
 import React, { useState, useContext } from "react";
 import { View, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { TaskContext } from "../context/TaskContext";
+import { IssueContext } from "../context/IssueContext";
+import * as Location from "expo-location";
 
 const ReportIssueScreen = ({ navigation }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [issueType, setIssueType] = useState("water");
-  const { addTask } = useContext(TaskContext);
+  const { addIssue } = useContext(IssueContext);
 
   const handleSubmit = async () => {
     try {
-      await addTask(title, description, issueType);
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission to access location was denied");
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+
+      await addIssue(title, description, issueType, latitude, longitude);
       Alert.alert("Success", "Issue reported successfully");
       navigation.goBack();
     } catch (error) {

@@ -1,5 +1,13 @@
 import React, { useState, useContext } from "react";
-import { View, TextInput, Button, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+  Text,
+} from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
 const LoginScreen = ({ navigation }) => {
@@ -32,10 +40,14 @@ const LoginScreen = ({ navigation }) => {
         secureTextEntry
       />
       <Button title="Login" onPress={handleLogin} />
-      <Button
+      {/* <Button
         title="Register"
         onPress={() => navigation.navigate("Register")}
-      />
+      /> */}
+
+      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+        <Text style={styles.linkText}>Pas de compte ? S'inscrire</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -46,6 +58,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 20,
   },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
@@ -53,6 +71,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 5,
   },
+  button: {
+    backgroundColor: "#007AFF",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+  },
+  linkText: {
+    color: "#007AFF",
+    textAlign: "center",
+    marginTop: 20,
+  },
 });
-
 export default LoginScreen;

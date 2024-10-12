@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { AuthProvider } from "./context/AuthContext";
-import { TaskProvider } from "./context/TaskContext";
 import LoginScreen from "./screens/LoginScreen";
+import { IssueProvider } from "./context/IssueContext";
 import HomeScreen from "./screens/HomeScreen";
 import ReportIssueScreen from "./screens/ReportIssueScreen";
 import IssueMapScreen from "./screens/IssueMapScreen";
@@ -24,7 +24,7 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <TaskProvider>
+      <IssueProvider>
         <NavigationContainer>
           <Stack.Navigator initialRouteName="Login">
             <Stack.Screen
@@ -56,7 +56,7 @@ export default function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
-      </TaskProvider>
+      </IssueProvider>
     </AuthProvider>
   );
 }
